@@ -1,0 +1,153 @@
+#!/usr/bin/env node -r esm
+'use strict';
+import { AvertemKey } from 'avertem-js-utils';
+import { AvertemMnemonic } from './mnemonic';
+import { AvertemAccount } from './account';
+import { AvertemAccountInfo } from './account_info';
+
+// command line arguments
+const optionDefinitions = [
+    { name: 'help', alias: 'h', type: Boolean },
+    { name: 'mnemonic', type: Boolean },
+    { name: 'account', type: Boolean }
+]
+
+const optionSchema = [
+    {
+      header: 'Avertem CLI',
+      content: 'Avertem {italic suite of tools} '
+    },
+    {
+      header: 'Options',
+      optionList: [
+        {
+          name: 'help',
+          typeLabel: 'bool',
+          description: 'Print this usage guide.'
+        },
+        {
+          name: 'mnemonic',
+          typeLabel: 'bool',
+          description: 'Generates a new nmemonic and account id'
+        },
+        {
+          name: 'account',
+          typeLabel: 'bool',
+          description: 'Commands to manage an account'
+        }
+      ]
+    }
+  ]
+
+class FileDetails {
+    constructor (filename) {
+      const fs = require('fs')
+      this.filename = filename
+      this.exists = fs.existsSync(filename)
+    }
+  }
+
+const commandLineArgs = require('command-line-args')
+const commandLineUsage = require('command-line-usage')
+const options = commandLineArgs(optionDefinitions, { stopAtFirstUnknown: true })
+let argv = options._unknown || []
+const usage = commandLineUsage(optionSchema)
+
+// check arguments
+if (!Object.keys(options).length || options.help) {
+    console.log("avertem_cli <options>")
+    console.log(usage)
+    process.exit(1);
+}
+
+// handle mnemonic
+if (options.mnemonic) {
+    const mnemonic = new AvertemMnemonic()
+    console.log("Nemonic: " + mnemonic.getMNemonic())
+    console.log("Account Hash: " + mnemonic.getAccountHash())
+    console.log("Account Key: " + mnemonic.getAccountKey())
+    process.exit(0);
+} else if (options.account) {
+    const accountOptionDefinitions = [
+        { name: 'generate', type: Number},
+        { name: 'create', type: Boolean },
+        { name: 'url' },
+        {
+            name: 'file',
+            multiple: true,
+            defaultOption: true,
+            type: filename => new FileDetails(filename)
+        },
+    ]
+    const accountSchema = [
+        {
+          header: 'Avertem CLI --account',
+          content: 'Account {italic the account sub command} '
+        },
+        {
+          header: 'Options',
+          optionList: [
+            {
+              name: 'create',
+              typeLabel: 'bool',
+              description: 'Create a new account.'
+            },
+            {
+              name: 'generate',
+              typeLabel: 'number',
+              description: 'Number of accounts to generate.'
+            },
+            {
+              name: 'url',
+              description: 'The url to make the connection to'
+            },
+            {
+              name: 'file',
+              typeLabel: 'file',
+              description: 'The list of files to load'
+            }
+          ]
+        }
+      ]
+
+    const accountOptions = commandLineArgs(accountOptionDefinitions, {argv, stopAtFirstUnknown: true })
+    const accountUsage = commandLineUsage(accountSchema)
+
+    if (accountOptions.create) {
+        if (accountOptions.file && accountOptions.url) {
+            accountOptions.file.forEach(element => {
+                const account = new AvertemAccount(element.filename,null)
+                if (!account.isValid().valid) {
+                    console.log(account.isValid())
+                } else {
+                    account.createAccount(accountOptions.url)
+                }
+            });
+        } else {
+            console.log("Must provide the file and url")
+            console.log(accountUsage)
+        }
+        
+    } else if (accountOptions.generate) {
+        if (accountOptions.url) {
+            for (let count = 0; count < accountOptions.generate; count++) {
+                const accountInfo = new AvertemAccountInfo()
+                const account = new AvertemAccount(null,accountInfo.getInfo())
+                account.createAccount(accountOptions.url)
+                console.log(accountInfo.getInfo())
+            }
+        } else {
+            console.log("Must provide the url")
+            console.log(accountUsage)
+        }
+    } else {
+        console.log(accountUsage)
+    }
+}
+
+
+
+
+
+
+

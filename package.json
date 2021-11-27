@@ -1,0 +1,25 @@
+{
+  "name": "avertem_cli",
+  "version": "1.0.0",
+  "description": "avertem command line tools",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "cli": "node -r esm avertem_cli.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "avertem-js-utils": "github:avertem/avertem-js-utils",
+    "command-line-args": "^5.2.0",
+    "command-line-usage": "^6.1.1",
+    "data-store": "^4.0.3",
+    "esm": "^3.2.25",
+    "fix-esm": "^1.0.1",
+    "jsonschema": "^1.4.0",
+    "load-json-file": "^7.0.1",
+    "node-fetch": "^3.0.0",
+    "protobufjs": "^6.11.2",
+    "request": "^2.88.2"
+  }
+}
